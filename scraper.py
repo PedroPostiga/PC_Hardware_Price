@@ -84,8 +84,12 @@ def make_session() -> requests.Session:
 
 def is_pccomponentes_url(url: str) -> bool:
     """Accept pccomponentes.pt and its subdomains, but not lookalike domains."""
-    host = (urlparse(url).hostname or "").lower()
-    return host == "pccomponentes.pt" or host.endswith(".pccomponentes.pt")
+    parsed_url = urlparse(url.strip())
+    host = (parsed_url.hostname or "").lower()
+    return (
+        parsed_url.scheme in {"http", "https"}
+        and (host == "pccomponentes.pt" or host.endswith(".pccomponentes.pt"))
+    )
 
 
 def parse_portuguese_price(value: str) -> Decimal | None:
