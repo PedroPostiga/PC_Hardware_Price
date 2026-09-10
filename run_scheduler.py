@@ -23,6 +23,7 @@ from pathlib import Path
 import schedule
 
 from db_setup import get_connection
+from notify import report_target_hits
 from scraper import (
     MAX_PRODUCTS_PER_RUN,
     MAX_REQUEST_DELAY_SECONDS,
@@ -114,6 +115,15 @@ def run_scrape_job(max_products: int = MAX_PRODUCTS_PER_RUN) -> None:
                 "All products failed in this run (0/%s succeeded). Check PCComponentes page structure and scraper selectors before the next run.",
                 attempted,
             )
+        # The scrape connection has already been closed when this ``finally``
+        # runs. A short-lived read-only connection keeps the notification check
+        # after the run summary and lets it run even after scrape setup errors.
+        try:
+            with get_connection() as connection:
+                report_target_hits(connection)
+        except Exception:
+            # A reporting problem must not terminate the long-running scheduler.
+            LOGGER.exception("Target-price notification check failed")
 
 
 def main() -> None:
