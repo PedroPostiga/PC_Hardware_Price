@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 .venv/
 price_tracker.log
+charts/
